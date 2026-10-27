@@ -26,11 +26,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build debug APK
+      - name: Decode release keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/vision-du-ciel-release.keystore
+
+      - name: Build release APK
+        env:
+          KEYSTORE_FILE: vision-du-ciel-release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: cd android && ./gradlew assembleRelease --no-daemon
+
+      - name: Build release AAB
+        env:
+          KEYSTORE_FILE: vision-du-ciel-release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: cd android && ./gradlew bundleRelease --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VisionDuCiel-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisionDuCiel-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
