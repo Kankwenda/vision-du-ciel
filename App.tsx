@@ -86,6 +86,7 @@ function App(): React.JSX.Element {
   const [numeroPiece, setNumeroPiece] = useState('');
   const [telephone, setTelephone] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Écran d'identification
   const [query, setQuery] = useState('');
@@ -128,6 +129,7 @@ function App(): React.JSX.Element {
     setNumeroPiece('');
     setTelephone('');
     setPhoto(null);
+    setIsOwner(false);
   };
 
   const savePerson = async () => {
@@ -145,9 +147,12 @@ function App(): React.JSX.Element {
       telephone: telephone.trim(),
       photo,
       date: new Date().toLocaleString('fr-FR'),
-      owner: false,
+      owner: isOwner,
     };
-    await persist([...persons, person]);
+    const base = isOwner
+      ? persons.map(x => ({...x, owner: false}))
+      : persons;
+    await persist([...base, person]);
     resetForm();
     setSelected(person);
     setScreen('detail');
@@ -448,6 +453,21 @@ function App(): React.JSX.Element {
             <TouchableOpacity style={[styles.btn, styles.btnOutline]} onPress={pickPhoto}>
               <Text style={styles.btnOutlineText}>CHOISIR DANS LA GALERIE</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.ownerCheck}
+              onPress={() => setIsOwner(!isOwner)}>
+              <View style={[styles.checkBox, isOwner && styles.checkBoxOn]}>
+                {isOwner && <Text style={styles.checkMark}>✓</Text>}
+              </View>
+              <View style={styles.ownerCheckText}>
+                <Text style={styles.ownerCheckLabel}>
+                  C’est le propriétaire de ce téléphone
+                </Text>
+                <Text style={styles.ownerCheckNote}>
+                  Son doigt pourra l’identifier via « Identifier par empreinte ».
+                </Text>
+              </View>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, styles.btnPrimary]} onPress={savePerson}>
               <Text style={styles.btnPrimaryText}>ENREGISTRER</Text>
             </TouchableOpacity>
@@ -575,6 +595,32 @@ const styles = StyleSheet.create({
   chipActive: {borderColor: COLORS.accent, backgroundColor: '#0A2A3A'},
   chipText: {color: COLORS.muted, fontSize: 13},
   chipTextActive: {color: COLORS.accent},
+  ownerCheck: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+  },
+  checkBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  checkBoxOn: {backgroundColor: COLORS.accent},
+  checkMark: {color: '#04060F', fontWeight: 'bold', fontSize: 16},
+  ownerCheckText: {flex: 1},
+  ownerCheckLabel: {color: COLORS.text, fontSize: 15, fontWeight: 'bold'},
+  ownerCheckNote: {color: COLORS.muted, fontSize: 12, marginTop: 4},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
